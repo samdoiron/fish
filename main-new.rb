@@ -32,6 +32,7 @@ $token_functions = {
   :FOR            => $handle_FOR,
   :WHILE          => $handle_WHILE,
   :SPACE          => $handle_SPACE,
+  :ELSE           => $handle_ELSE,
 }
 
 $token_functions.default = $handle_OTHER

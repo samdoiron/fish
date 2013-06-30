@@ -1,7 +1,6 @@
 Fish
 ====
-A clean and pragmatic language that compiles to C
--------------------------------------------------
+###A clean and pragmatic language that compiles to C
 
 Fish is my answer to many of the problems I have with
 typical I have with the two main camps of Systems

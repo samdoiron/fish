@@ -40,6 +40,13 @@ $handle_IF = Proc.new do |tokens, i|
   }
 end
 
+$handle_ELSE = Proc.new do |tokens, i|
+  {
+    :i    => i,
+    :CODE => "else "
+  }
+end
+
 $handle_FOR = Proc.new do |tokens, i|
   after_for = []
 

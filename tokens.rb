@@ -42,5 +42,6 @@ Tokens = {
   /\A==\z/        => :EQUALS?,
   /\A!=\z/        => :NOT_EQUALS?,
   /\A\W\z/        => :SPACE,
+  /\A\[\z/        => :ARRAY_OPEN,
+  /\A\]\z/        => :ARRAY_CLOSE,
 }
-
