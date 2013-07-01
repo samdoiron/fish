@@ -15,10 +15,14 @@ def tokenize(code)
       }
     }
 
+    if string_symbol_pairs.empty? 
+      puts "Oh-nose!, no matching tokens for |#{code}|"
+    end
+      
     longest = string_symbol_pairs.map { |x| x[:text].length }.max
 
     # If the same longest text matches multiple tokens, the dispute is
-    # settled by the presidence determined by the Token list
+    # settled by the presidence determined by the order of the Token list
     top = string_symbol_pairs.select { |x| x[:text].length == longest }.first
 
     tokens << top
@@ -54,7 +58,7 @@ def parse(tokens)
     handled = $token_functions[kind].call(tokens, i)
 
     i = handled[:i]
-    codeResult += handled[:CODE]
+    codeResult << handled[:CODE]
 
     i += 1
   end
@@ -63,12 +67,13 @@ def parse(tokens)
 end
 
 def wrap(code)
-  """#include <stdio.h>
+  """
+#include <stdio.h>
 #include \"fish.h\"
 int main(void) {
   #{code}
 }
-"""
+"""[1..-1]
 end
 
 def format(code)
@@ -102,16 +107,53 @@ def format(code)
     line
   end
 
-  code
+  code.join("\n")
 end
 
 start = Time.now
 tokens = []
-File.open("myFile.fish") do |file|
+output = ""
+File.open(ARGV[1], "r") do |file|
   file = file.read.strip
   tokens = tokenize(file)
-  puts tokens
-  # puts format(wrap(parse(tokens)))
+  output = format(wrap(parse(tokens)))
 end
 
-puts "Elapsed Time: #{Time.now - start}"
+command = ARGV[0]
+if command == "say" 
+  puts output
+end
+
+if ["write", "compile", "run"].include?(command)
+  outName = ARGV[1].split(".")[0]
+  File.open("#{outName}.c", "w") do |file|
+    file.write(output)
+  end
+  puts "File written."
+end
+
+if ["compile", "run"].include?(command)
+  puts "Compiling..."
+  compile = Thread.new do 
+    unless system("gcc -o #{outName} -std=c99 #{outName}.c")
+      puts "Error: Could not compile."
+    end
+  end
+  compile.join
+  puts "File compiled."
+end
+
+if command == "run"
+  run = Thread.new do 
+    unless system("./#{outName}")
+      puts "Error: Could not run. (Wrote and compiled successfully)"
+    end
+  end
+  run.join
+  puts "~---------------------~"
+  puts "File ran successfully."
+end
+
+if command != "say"
+  puts "Elapsed Time: #{Time.now - start}"
+end
