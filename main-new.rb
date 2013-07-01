@@ -4,22 +4,25 @@ require "./tokens.rb"
 symbols = Array.new
 
 def tokenize(code)
+  keys = Tokens.keys
   tokens = []
-  (0...code.length).each do |i|
-    # this loop is backwards so that it grabs
-    # the longest matching key ("10" vs. "1", "0")
-    (code.length-1).downto(i).each do |e| 
-      sub = code[i..e]
+  until code.empty?
+    matching = keys.reject { |x| code[x].nil? }
+    string_symbol_pairs = matching.map { |x| 
+      { 
+      :token => Tokens[x],
+      :text  => code[x]
+      }
+    }
 
-      matching_tokens = Tokens.keys.select { |x| x =~ sub }
-        .collect { |x| Tokens[x] }
+    longest = string_symbol_pairs.map { |x| x[:text].length }.max
 
-      unless matching_tokens.empty? 
-        code = code[sub.length-1..-1]
-        tokens << {:token => matching_tokens[0], :text => sub}
-        break
-      end
-    end
+    # If the same longest text matches multiple tokens, the dispute is
+    # settled by the presidence determined by the Token list
+    top = string_symbol_pairs.select { |x| x[:text].length == longest }.first
+
+    tokens << top
+    code = code[longest..-1]
   end
   tokens
 end
@@ -29,10 +32,12 @@ $token_functions = {
   :INT_LITERAL    => $handle_INT_LITERAL,
   :STRING_LITERAL => $handle_STRING_LITERAL,
   :IF             => $handle_IF,
+  :ELIF           => $handle_ELIF,
   :FOR            => $handle_FOR,
   :WHILE          => $handle_WHILE,
   :SPACE          => $handle_SPACE,
   :ELSE           => $handle_ELSE,
+  :COMMENT        => $handle_COMMENT,
 }
 
 $token_functions.default = $handle_OTHER
@@ -72,8 +77,14 @@ def format(code)
   code = code.lines.collect do |line|
     line.strip!
 
-    unless ["}", "{"].include?(line[-1]) or line.empty? \
-      or line[0] == "#"
+    if line.include?("//")
+      line = line[0..line.index("//")-3]
+    end
+
+    unless ["}", "{"].include?(line[-1]) \
+      || line.empty?  \
+      || line[0] == "#" 
+
       line += ";"
     end
 
@@ -93,10 +104,14 @@ def format(code)
 
   code
 end
+
+start = Time.now
 tokens = []
 File.open("myFile.fish") do |file|
   file = file.read.strip
   tokens = tokenize(file)
-  puts format(wrap(parse(tokens)))
+  puts tokens
+  # puts format(wrap(parse(tokens)))
 end
 
+puts "Elapsed Time: #{Time.now - start}"
