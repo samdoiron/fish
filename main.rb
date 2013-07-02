@@ -53,7 +53,13 @@ Token_functions = {
   :SPACE          => $handle_SPACE,
   :ELSE           => $handle_ELSE,
   :COMMENT        => $handle_COMMENT,
-  :SYMBOL         => $handle_SYMBOL
+  :SYMBOL         => $handle_SYMBOL,
+  :FUNCTION_CALL  => $handle_FUNCTION_CALL,
+  :SYMBOL_ASSIGN  => $handle_SYMBOL_ASSIGN,
+  :INT_LITERAL_ASSIGN    => $handle_INT_LITERAL_ASSIGN,
+  :STRING_LITERAL_ASSIGN => $handle_STRING_LITERAL_ASSIGN,
+  :FLOAT_LITERAL_ASSIGN  => $handle_FLOAT_LITERAL_ASSIGN,
+  :PRINT                 => $handle_PRINT,
 }
 Token_functions.default = $handle_OTHER
 
@@ -82,7 +88,7 @@ def parse(tokens)
     handled = Token_functions[kind].call(tokens, i)
 
     i = handled[:i]
-    codeResult << handled[:CODE]
+    codeResult << handled[:code]
 
     i += 1
   end
@@ -211,5 +217,7 @@ if __FILE__ == $0
     puts "Elapsed Time: #{Time.now - start}"
   end
 
-  puts "SYMBOLS: #{$symbols.map { |x| x[:text] }.uniq}"
 end
+
+puts "Variables #{$variables}"
+puts "Functions: #{$functions}"
